@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ChatGPT Web Extras
 // @namespace    https://github.com/dionesrosa
-// @version      0.1
+// @version      0.1.1
 // @description  Ajustes especificos para o ChatGPT Web, como reprodução de mensagens de voz e outras funcionalidades extras.
 // @author       Diones Souza
 // @license      MIT
@@ -20,18 +20,16 @@
 // @connect      localhost
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
-    
-    // Variáveis de controle de estado
+
     let statusSistema = true;
     let statusGerando = false;
     let statusLeitura = false;
-    let listenerGeracao = null;
+    let ultimoEstado = null;
 
     console.log('ChatGPT Web Extras carregado!');
 
-    // Função para lidar com a finalização da resposta
     function onRespostaFinalizada() {
         if (statusLeitura) return;
 
@@ -42,46 +40,45 @@
         }, 400);
     }
 
-    // Função para abrir o menu da última mensagem
     function abrirMenuUltimaMensagem() {
-        const btnUltimo = document.querySelectorAll('button[aria-label="Mais ações"]')
-            .item(document.querySelectorAll('button[aria-label="Mais ações"]').length - 1);
+        const botoes = document.querySelectorAll('button[aria-label="Mais ações"]');
+        const ultimaMensagem = document.querySelectorAll('[data-message-author-role="assistant"]');
+        const ultima = ultimaMensagem[ultimaMensagem.length - 1];
 
-        if (!btnUltimo) {
+        const btn = ultima?.querySelector('button[aria-label="Mais ações"]')
+            || botoes[botoes.length - 1];
+
+        if (!btn) {
             statusLeitura = false;
             return;
         }
 
-        btnUltimo?.click();
+        btn.click();
 
         setTimeout(() => {
-            clicarLeitura(btnUltimo);
+            clicarLeitura();
         }, 400);
     }
 
-    // Função para clicar no botão de leitura da mensagem
-    function clicarLeitura(btn) {
-        if (!btn) {
+    function clicarLeitura() {
+        const btnPlay = document.querySelector('[data-testid="voice-play-turn-action-button"]');
+
+        if (!btnPlay) {
             statusLeitura = false;
-            console.log('Botão de leitura não encontrado. Verifique se a funcionalidade de leitura está disponível para esta mensagem.');
             return;
         }
 
-        console.log('Botão de leitura encontrado. Iniciando leitura...');
-        let btnPlay = document.querySelector(
-            '[data-testid="voice-play-turn-action-button"]'
-        );
+        const estado = btnPlay.textContent?.trim();
 
-        if (btnPlay.textContent?.includes("Parar")) {
-            btnPlay?.click();
-            console.log('Parando a leitura atual. Tentando iniciar novamente...');
+        // Se já estiver tocando
+        if (estado === "Parar") {
+            btnPlay.click();
 
-            setTimeout(clicarLeitura, 400);
+            setTimeout(() => clicarLeitura(), 400);
             return;
         }
 
-        btnPlay?.click();
-        console.log('Iniciando a leitura da última mensagem.');
+        btnPlay.click();
 
         setTimeout(() => {
             document.querySelector('#prompt-textarea')?.focus();
@@ -90,20 +87,12 @@
         statusLeitura = false;
     }
 
-    // Função de inicialização do script
     function initialize() {
-        if (!statusSistema) {
-            console.log('O sistema de extras está desativado. Ative para usar as funcionalidades extras.');
-            return;
-        }
+        if (!statusSistema) return;
 
-        let ultimoEstado = null;
-
-        listenerGeracao = setInterval(() => {
+        setInterval(() => {
             const stopBtn = document.querySelector('[data-testid="stop-button"]');
-            const sendBtn = document.querySelector('[data-testid="send-button"]');
-
-            let estado = stopBtn ? "gerando" : "idle";
+            const estado = stopBtn ? "gerando" : "idle";
 
             if (ultimoEstado === "gerando" && estado === "idle") {
                 console.log("TRANSIÇÃO: FINALIZOU");
@@ -111,12 +100,9 @@
             }
 
             ultimoEstado = estado;
-
-            //console.log(`Estado atual: ${estado}`);
-        }, 800);
+        }, 700);
     }
 
-    // Espera o DOM estar completamente carregado antes de inicializar
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
         initialize();
     } else {
