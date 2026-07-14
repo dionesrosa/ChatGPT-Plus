@@ -20,25 +20,6 @@
 (function() {
     'use strict';
 
-    // ==UserScript==
-    // @name         ChatGPT Web Extras
-    // @namespace    https://github.com/dionesrosa
-    // @version      0.2.1
-    // @description  Reprodução automática de voz ao finalizar resposta no chat do chatGPT.
-    // @author       Diones Souza
-    // @license      MIT
-    // @icon         https://chatgpt.com/favicon.ico
-    // @homepageURL  https://github.com/dionesrosa/ChatGPT-Web-Extras
-    // @supportURL   https://github.com/dionesrosa/ChatGPT-Web-Extras/issues
-    // @updateURL    https://raw.githubusercontent.com/dionesrosa/ChatGPT-Web-Extras/master/script.js
-    // @downloadURL  https://raw.githubusercontent.com/dionesrosa/ChatGPT-Web-Extras/master/script.js
-    // @match        *://chatgpt.com/*
-    // @run-at       document-idle
-    // @grant        GM_getValue
-    // @grant        GM_setValue
-    // @noframes
-    // ==/UserScript==
-    
     (function() {
         'use strict';
     

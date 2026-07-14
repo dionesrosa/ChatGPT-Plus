@@ -1,6 +1,6 @@
 {
   "name": "ChatGPT Web Extras",
-  "entry": "script.js",
+  "entry": "src/index.js",
   "output": "dist/chatgpt-web-extras.user.js",
   "namespace": "https://github.com/dionesrosa",
   "copyright": "",
