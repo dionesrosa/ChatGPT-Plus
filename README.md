@@ -5,7 +5,7 @@ Userscript para o ChatGPT desenvolvido por Diones Souza com Tampermonkey.
 [![Licença MIT](https://img.shields.io/badge/licença-MIT-green)](LICENSE)
 [![Tampermonkey](https://img.shields.io/badge/Tampermonkey-suportado-orange)](https://www.tampermonkey.net/)
 
-[![Instalar](https://img.shields.io/badge/Instalar-Userscript-blue?style=for-the-badge&logo=Tampermonkey)](https://raw.githubusercontent.com/dionesrosa/ChatGPT-Web-Extras/main/dist/chatgpt-web-extras.user.js)
+[![Instalar](https://img.shields.io/badge/Instalar-Userscript-blue?style=for-the-badge&logo=Tampermonkey)](https://raw.githubusercontent.com/dionesrosa/ChatGPT-Plus/main/dist/chatgpt-web-extras.user.js)
 
 ---
 

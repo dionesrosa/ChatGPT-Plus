@@ -6,10 +6,10 @@
 // @author       Diones Souza
 // @license      MIT
 // @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAIAAeIhvAAAAAElFTkSuQmCC
-// @homepageURL  https://github.com/dionesrosa/ChatGPT-Web-Extras
-// @supportURL   https://github.com/dionesrosa/ChatGPT-Web-Extras/issues
-// @updateURL    https://raw.githubusercontent.com/dionesrosa/ChatGPT-Web-Extras/main/dist/chatgpt-web-extras.user.js
-// @downloadURL  https://raw.githubusercontent.com/dionesrosa/ChatGPT-Web-Extras/main/dist/chatgpt-web-extras.user.js
+// @homepageURL  https://github.com/dionesrosa/ChatGPT-Plus
+// @supportURL   https://github.com/dionesrosa/ChatGPT-Plus/issues
+// @updateURL    https://raw.githubusercontent.com/dionesrosa/ChatGPT-Plus/main/dist/chatgpt-web-extras.user.js
+// @downloadURL  https://raw.githubusercontent.com/dionesrosa/ChatGPT-Plus/main/dist/chatgpt-web-extras.user.js
 // @match        *://chatgpt.com/*
 // @grant        GM_getValue
 // @grant        GM_setValue
