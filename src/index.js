@@ -4,7 +4,7 @@
     // ============================
     //  Configurações do script
     // ============================
-    const SCRIPT_NAME    = 'ChatGPT Web Extras';
+    const SCRIPT_NAME    = 'ChatGPT Plus';
     const SCRIPT_VERSION = '0.2.1';
 
     // ============================

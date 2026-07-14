@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         ChatGPT Web Extras
+// @name         ChatGPT Plus
 // @namespace    https://github.com/dionesrosa
 // @version      0.2.1
 // @description  Reprodução automática de voz ao finalizar resposta no chat do ChatGPT.
@@ -8,8 +8,8 @@
 // @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAIAAeIhvAAAAAElFTkSuQmCC
 // @homepageURL  https://github.com/dionesrosa/ChatGPT-Plus
 // @supportURL   https://github.com/dionesrosa/ChatGPT-Plus/issues
-// @updateURL    https://raw.githubusercontent.com/dionesrosa/ChatGPT-Plus/main/dist/chatgpt-web-extras.user.js
-// @downloadURL  https://raw.githubusercontent.com/dionesrosa/ChatGPT-Plus/main/dist/chatgpt-web-extras.user.js
+// @updateURL    https://raw.githubusercontent.com/dionesrosa/ChatGPT-Plus/main/dist/chatgpt-plus.user.js
+// @downloadURL  https://raw.githubusercontent.com/dionesrosa/ChatGPT-Plus/main/dist/chatgpt-plus.user.js
 // @match        *://chatgpt.com/*
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -26,7 +26,7 @@
         // ============================
         //  Configurações do script
         // ============================
-        const SCRIPT_NAME    = 'ChatGPT Web Extras';
+        const SCRIPT_NAME    = 'ChatGPT Plus';
         const SCRIPT_VERSION = '0.2.1';
     
         // ============================

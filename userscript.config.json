@@ -1,7 +1,7 @@
 {
-  "name": "ChatGPT Web Extras",
+  "name": "ChatGPT Plus",
   "entry": "src/index.js",
-  "output": "dist/chatgpt-web-extras.user.js",
+  "output": "dist/chatgpt-plus.user.js",
   "namespace": "https://github.com/dionesrosa",
   "copyright": "",
   "version": "0.2.1",
@@ -11,8 +11,8 @@
   "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAIAAeIhvAAAAAElFTkSuQmCC",
   "homepageURL": "https://github.com/dionesrosa/ChatGPT-Plus",
   "supportURL": "https://github.com/dionesrosa/ChatGPT-Plus/issues",
-  "updateURL": "https://raw.githubusercontent.com/dionesrosa/ChatGPT-Plus/main/dist/chatgpt-web-extras.user.js",
-  "downloadURL": "https://raw.githubusercontent.com/dionesrosa/ChatGPT-Plus/main/dist/chatgpt-web-extras.user.js",
+  "updateURL": "https://raw.githubusercontent.com/dionesrosa/ChatGPT-Plus/main/dist/chatgpt-plus.user.js",
+  "downloadURL": "https://raw.githubusercontent.com/dionesrosa/ChatGPT-Plus/main/dist/chatgpt-plus.user.js",
   "match": [
     "*://chatgpt.com/*"
   ],
