@@ -33,8 +33,15 @@ export function installFetchInterceptor() {
         // Captura headers da requisição /synthesize (única onde Authorization aparece)
         if (url.includes('backend-api/synthesize') && options?.headers) {
             const h = options.headers;
+            // Headers podem vir com chaves em minúsculo — normaliza para busca case-insensitive
+            const normalizedHeaders = typeof h.entries === 'function'
+                ? Object.fromEntries([...h.entries()])
+                : h;
+            const lowerMap = Object.fromEntries(
+                Object.entries(normalizedHeaders).map(([k, v]) => [k.toLowerCase(), v])
+            );
             SYNTHESIZE_HEADER_KEYS.forEach(key => {
-                const val = typeof h.get === 'function' ? h.get(key) : h[key];
+                const val = lowerMap[key.toLowerCase()];
                 if (val) sessionHeaders[key] = val;
             });
             logInfo('Headers de síntese capturados, Authorization presente:', !!sessionHeaders['Authorization']);
