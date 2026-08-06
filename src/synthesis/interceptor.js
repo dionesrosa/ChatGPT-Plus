@@ -1,14 +1,14 @@
-import { logInfo } from '../core/logger.js';
+import { logInfo, logWarn } from '../core/logger.js';
 import { playWithCustomPlayer } from '../player/audio.js';
 
 /**
- * Headers de sessão coletados ao interceptar requisições ao backend do ChatGPT.
- * Preenchidos automaticamente por installFetchInterceptor().
+ * Headers de sessão coletados ao interceptar a requisição /synthesize nativa.
+ * O Authorization só aparece nessa requisição — não nas outras chamadas ao backend.
  */
 export const sessionHeaders = {};
 
-/** Chaves de header de sessão que devem ser coletadas */
-const SESSION_HEADER_KEYS = [
+/** Chaves a capturar da requisição /synthesize */
+const SYNTHESIZE_HEADER_KEYS = [
     'Authorization',
     'OAI-Language',
     'OAI-Session-Id',
@@ -20,9 +20,9 @@ const SESSION_HEADER_KEYS = [
 
 /**
  * Instala um interceptor no fetch nativo com dois objetivos:
- *  1. Coletar headers de sessão OAI de qualquer requisição ao backend.
- *  2. Capturar a resposta do endpoint /synthesize e redirecionar o áudio
- *     para o player customizado.
+ *  1. Capturar os headers da requisição /synthesize (onde o Authorization aparece)
+ *     para uso nas próximas chamadas diretas.
+ *  2. Redirecionar o áudio da resposta /synthesize para o player customizado.
  */
 export function installFetchInterceptor() {
     const originalFetch = window.fetch;
@@ -30,18 +30,19 @@ export function installFetchInterceptor() {
     window.fetch = async function (resource, options) {
         const url = typeof resource === 'string' ? resource : resource?.url ?? '';
 
-        // 1. Coleta headers de sessão
-        if (url.includes('chatgpt.com/backend-api') && options?.headers) {
+        // Captura headers da requisição /synthesize (única onde Authorization aparece)
+        if (url.includes('backend-api/synthesize') && options?.headers) {
             const h = options.headers;
-            SESSION_HEADER_KEYS.forEach(key => {
+            SYNTHESIZE_HEADER_KEYS.forEach(key => {
                 const val = typeof h.get === 'function' ? h.get(key) : h[key];
                 if (val) sessionHeaders[key] = val;
             });
+            logInfo('Headers de síntese capturados, Authorization presente:', !!sessionHeaders['Authorization']);
         }
 
         const response = await originalFetch.apply(this, arguments);
 
-        // 2. Captura a resposta de síntese
+        // Redireciona o áudio da resposta /synthesize para o player customizado
         if (url.includes('backend-api/synthesize')) {
             logInfo('Resposta de síntese capturada:', url);
             const clone     = response.clone();
@@ -55,4 +56,9 @@ export function installFetchInterceptor() {
     };
 
     logInfo('Interceptor de fetch instalado');
+}
+
+/** Retorna true se o token de autorização já foi capturado */
+export function hasAuthToken() {
+    return !!sessionHeaders['Authorization'];
 }

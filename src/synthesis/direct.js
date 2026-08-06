@@ -1,8 +1,9 @@
 import { logInfo, logWarn } from '../core/logger.js';
 import { releaseReadingLock } from '../core/state.js';
 import { TTS_VOICE } from '../config/settings.js';
-import { sessionHeaders } from './interceptor.js';
+import { sessionHeaders, hasAuthToken } from './interceptor.js';
 import { playWithCustomPlayer } from '../player/audio.js';
+import { openLastMessageMenu } from '../ui/menu.js';
 
 /**
  * Extrai o conversation_id da URL atual.
@@ -28,33 +29,27 @@ export function getLastMessageId() {
 }
 
 /**
- * Obtém o token Bearer de autorização a partir dos headers capturados
- * pelo interceptor de fetch. O warm-up garante que esteja disponível
- * antes da primeira síntese.
- * @returns {string|null}
- */
-function resolveAuthToken() {
-    return sessionHeaders['Authorization'] ?? null;
-}
-
-/**
- * Solicita a síntese de voz diretamente ao backend do ChatGPT,
- * sem simular cliques na UI.
+ * Solicita a síntese de voz.
+ *
+ * Se o token de autorização já foi capturado (a partir da segunda resposta),
+ * faz a requisição diretamente ao backend.
+ *
+ * Se não tiver token ainda (primeira resposta da sessão), usa o fluxo de UI
+ * para disparar o /synthesize nativo — o interceptor captura a resposta e
+ * redireciona para o player, e também salva o token para as próximas vezes.
  */
 export async function requestSynthesisDirect() {
+    if (!hasAuthToken()) {
+        logInfo('Token ainda não disponível – usando UI para capturar na primeira vez');
+        openLastMessageMenu();
+        return;
+    }
+
     const conversationId = getConversationId();
     const messageId      = getLastMessageId();
 
     if (!conversationId || !messageId) {
         logWarn('Não foi possível obter conversation_id ou message_id', { conversationId, messageId });
-        releaseReadingLock();
-        return;
-    }
-
-    const authToken = resolveAuthToken();
-
-    if (!authToken) {
-        logWarn('Token de autorização não disponível — abortando síntese direta');
         releaseReadingLock();
         return;
     }
@@ -71,7 +66,7 @@ export async function requestSynthesisDirect() {
         const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization':               authToken,
+                'Authorization':               sessionHeaders['Authorization'],
                 'OAI-Language':                sessionHeaders['OAI-Language']                ?? 'pt-BR',
                 'OAI-Session-Id':              sessionHeaders['OAI-Session-Id']              ?? '',
                 'OAI-Device-Id':               sessionHeaders['OAI-Device-Id']               ?? '',

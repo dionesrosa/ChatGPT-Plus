@@ -190,7 +190,10 @@
             const h = options.headers;
             SESSION_HEADER_KEYS.forEach((key) => {
               const val = typeof h.get === "function" ? h.get(key) : h[key];
-              if (val) sessionHeaders[key] = val;
+              if (val) {
+                sessionHeaders[key] = val;
+                logInfo(`Header capturado: ${key} =`, val.substring(0, 40) + "...");
+              }
             });
           }
           const response = await originalFetch.apply(this, arguments);
@@ -220,17 +223,7 @@
         return last?.dataset?.messageId ?? null;
       }
       function resolveAuthToken() {
-        try {
-          const raw = localStorage.getItem("oai/apps/accountSwitchSessions");
-          const sessions = JSON.parse(raw);
-          const token = Array.isArray(sessions) ? sessions.find((s) => s?.sessionToken?.startsWith("eyJ"))?.sessionToken : null;
-          if (token) return `Bearer ${token}`;
-        } catch (_) {
-        }
-        if (sessionHeaders["Authorization"]) {
-          return sessionHeaders["Authorization"];
-        }
-        return null;
+        return sessionHeaders["Authorization"] ?? null;
       }
       async function requestSynthesisDirect() {
         const conversationId = getConversationId();
@@ -248,6 +241,7 @@
         }
         const url = `https://chatgpt.com/backend-api/synthesize?message_id=${encodeURIComponent(messageId)}&conversation_id=${encodeURIComponent(conversationId)}&voice=${encodeURIComponent(TTS_VOICE)}&format=aac`;
         logInfo("Requisitando s\xEDntese direta:", url);
+        logInfo("Authorization:", authToken?.substring(0, 50) + "...");
         try {
           const response = await fetch(url, {
             method: "GET",
