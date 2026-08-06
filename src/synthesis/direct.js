@@ -1,7 +1,7 @@
 import { logInfo, logWarn } from '../core/logger.js';
 import { releaseReadingLock } from '../core/state.js';
 import { TTS_VOICE } from '../config/settings.js';
-import { sessionHeaders, hasAuthToken } from './interceptor.js';
+import { sessionHeaders } from './interceptor.js';
 import { playWithCustomPlayer } from '../player/audio.js';
 import { openLastMessageMenu } from '../ui/menu.js';
 
