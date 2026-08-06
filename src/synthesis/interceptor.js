@@ -30,10 +30,9 @@ export function installFetchInterceptor() {
     window.fetch = async function (resource, options) {
         const url = typeof resource === 'string' ? resource : resource?.url ?? '';
 
-        // Captura headers da requisição /synthesize (única onde Authorization aparece)
-        if (url.includes('backend-api/synthesize') && options?.headers) {
+        // Captura headers de sessão de qualquer chamada ao backend que os contenha
+        if (url.includes('chatgpt.com/backend-api') && options?.headers) {
             const h = options.headers;
-            // Headers podem vir com chaves em minúsculo — normaliza para busca case-insensitive
             const normalizedHeaders = typeof h.entries === 'function'
                 ? Object.fromEntries([...h.entries()])
                 : h;
@@ -44,7 +43,6 @@ export function installFetchInterceptor() {
                 const val = lowerMap[key.toLowerCase()];
                 if (val) sessionHeaders[key] = val;
             });
-            logInfo('Headers de síntese capturados, Authorization presente:', !!sessionHeaders['Authorization']);
         }
 
         const response = await originalFetch.apply(this, arguments);
