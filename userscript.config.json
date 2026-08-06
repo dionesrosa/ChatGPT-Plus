@@ -2,6 +2,7 @@
   "name": "ChatGPT Plus",
   "entry": "src/index.js",
   "output": "dist/chatgpt-plus.user.js",
+  "bundle": true,
   "namespace": "https://github.com/dionesrosa",
   "copyright": "",
   "version": "0.2.3",
