@@ -3,7 +3,6 @@ import { releaseReadingLock } from '../core/state.js';
 import { TTS_VOICE } from '../config/settings.js';
 import { sessionHeaders } from './interceptor.js';
 import { playWithCustomPlayer } from '../player/audio.js';
-import { openLastMessageMenu } from '../ui/menu.js';
 
 /**
  * Extrai o conversation_id da URL atual.
@@ -29,12 +28,39 @@ export function getLastMessageId() {
 }
 
 /**
+ * Tenta obter o token Bearer de autorização.
+ * Ordem de prioridade:
+ *  1. sessionHeaders — capturado pelo interceptor de fetch
+ *  2. window.__NEXT_DATA__ — injetado pelo Next.js no HTML da página
+ *  3. endpoint /api/auth/session — chamada leve que retorna a sessão atual
+ * @returns {Promise<string|null>}
+ */
+async function resolveAuthToken() {
+    // 1. Já capturado pelo interceptor
+    if (sessionHeaders['Authorization']) {
+        return sessionHeaders['Authorization'];
+    }
+
+    // 2. Token injetado pelo Next.js no HTML
+    try {
+        const token = window.__NEXT_DATA__?.props?.pageProps?.user?.accessToken;
+        if (token) return `Bearer ${token}`;
+    } catch (_) {}
+
+    // 3. Endpoint de sessão leve
+    try {
+        const res  = await fetch('/api/auth/session');
+        const data = await res.json();
+        const token = data?.accessToken;
+        if (token) return `Bearer ${token}`;
+    } catch (_) {}
+
+    return null;
+}
+
+/**
  * Solicita a síntese de voz diretamente ao backend do ChatGPT,
- * sem precisar simular cliques na UI.
- *
- * Fallback: se o token de autorização ainda não foi capturado,
- * cai para o fluxo de clique na UI (que dispara a síntese e
- * popula sessionHeaders para as próximas chamadas).
+ * sem simular cliques na UI.
  */
 export async function requestSynthesisDirect() {
     const conversationId = getConversationId();
@@ -46,9 +72,11 @@ export async function requestSynthesisDirect() {
         return;
     }
 
-    if (!sessionHeaders['Authorization']) {
-        logWarn('Token de autorização ainda não capturado – usando fallback via UI');
-        openLastMessageMenu();
+    const authToken = await resolveAuthToken();
+
+    if (!authToken) {
+        logWarn('Token de autorização não disponível — abortando síntese direta');
+        releaseReadingLock();
         return;
     }
 
@@ -64,7 +92,7 @@ export async function requestSynthesisDirect() {
         const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization':               sessionHeaders['Authorization'],
+                'Authorization':               authToken,
                 'OAI-Language':                sessionHeaders['OAI-Language']                ?? 'pt-BR',
                 'OAI-Session-Id':              sessionHeaders['OAI-Session-Id']              ?? '',
                 'OAI-Device-Id':               sessionHeaders['OAI-Device-Id']               ?? '',
