@@ -30,30 +30,25 @@ export function getLastMessageId() {
 /**
  * Tenta obter o token Bearer de autorização.
  * Ordem de prioridade:
- *  1. sessionHeaders — capturado pelo interceptor de fetch
- *  2. window.__NEXT_DATA__ — injetado pelo Next.js no HTML da página
- *  3. endpoint /api/auth/session — chamada leve que retorna a sessão atual
- * @returns {Promise<string|null>}
+ *  1. localStorage 'oai/apps/accountSwitchSessions' — fonte primária, sempre disponível
+ *  2. sessionHeaders — capturado pelo interceptor de fetch em chamadas anteriores
+ * @returns {string|null}
  */
-async function resolveAuthToken() {
-    // 1. Já capturado pelo interceptor
+function resolveAuthToken() {
+    // 1. localStorage — array de sessões, pega a primeira com sessionToken válido
+    try {
+        const raw      = localStorage.getItem('oai/apps/accountSwitchSessions');
+        const sessions = JSON.parse(raw);
+        const token    = Array.isArray(sessions)
+            ? sessions.find(s => s?.sessionToken?.startsWith('eyJ'))?.sessionToken
+            : null;
+        if (token) return `Bearer ${token}`;
+    } catch (_) {}
+
+    // 2. Capturado pelo interceptor de fetch
     if (sessionHeaders['Authorization']) {
         return sessionHeaders['Authorization'];
     }
-
-    // 2. Token injetado pelo Next.js no HTML
-    try {
-        const token = window.__NEXT_DATA__?.props?.pageProps?.user?.accessToken;
-        if (token) return `Bearer ${token}`;
-    } catch (_) {}
-
-    // 3. Endpoint de sessão leve
-    try {
-        const res  = await fetch('/api/auth/session');
-        const data = await res.json();
-        const token = data?.accessToken;
-        if (token) return `Bearer ${token}`;
-    } catch (_) {}
 
     return null;
 }
@@ -72,7 +67,7 @@ export async function requestSynthesisDirect() {
         return;
     }
 
-    const authToken = await resolveAuthToken();
+    const authToken = resolveAuthToken();
 
     if (!authToken) {
         logWarn('Token de autorização não disponível — abortando síntese direta');
