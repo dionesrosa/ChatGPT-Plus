@@ -18,6 +18,25 @@ const SYNTHESIZE_HEADER_KEYS = [
     'X-OAI-IS-Client-Observation',
 ];
 
+function normalizeHeaders(headers) {
+    if (!headers) return null;
+    if (typeof headers.entries === 'function') {
+        return Object.fromEntries([...headers.entries()]);
+    }
+    return { ...headers };
+}
+
+function getHeaderValue(headers, key) {
+    if (!headers) return undefined;
+    const lowerKey = key.toLowerCase();
+    for (const [name, value] of Object.entries(headers)) {
+        if (name.toLowerCase() === lowerKey) {
+            return value;
+        }
+    }
+    return undefined;
+}
+
 /**
  * Instala um interceptor no fetch nativo com dois objetivos:
  *  1. Capturar os headers da requisição /synthesize (onde o Authorization aparece)
@@ -29,13 +48,10 @@ export function installFetchInterceptor() {
 
     window.fetch = async function (resource, options) {
         const url = typeof resource === 'string' ? resource : resource?.url ?? '';
+        const normalizedHeaders = normalizeHeaders(options?.headers);
 
         // Captura headers de sessão de qualquer chamada ao backend que os contenha
-        if (url.includes('chatgpt.com/backend-api') && options?.headers) {
-            const h = options.headers;
-            const normalizedHeaders = typeof h.entries === 'function'
-                ? Object.fromEntries([...h.entries()])
-                : h;
+        if (url.includes('backend-api') && normalizedHeaders) {
             const lowerMap = Object.fromEntries(
                 Object.entries(normalizedHeaders).map(([k, v]) => [k.toLowerCase(), v])
             );
@@ -47,14 +63,23 @@ export function installFetchInterceptor() {
 
         const response = await originalFetch.apply(this, arguments);
 
-        // Redireciona o áudio da resposta /synthesize para o player customizado
-        if (url.includes('backend-api/synthesize')) {
+        const isDirectSynthesis = url.includes('backend-api/synthesize') && (
+            getHeaderValue(normalizedHeaders, 'x-openai-target-path') ||
+            getHeaderValue(normalizedHeaders, 'x-openai-target-route')
+        );
+
+        if (url.includes('backend-api/synthesize') && !isDirectSynthesis && response.ok) {
             logInfo('Resposta de síntese capturada:', url);
-            const clone     = response.clone();
-            const buffer    = await clone.arrayBuffer();
-            const blob      = new Blob([buffer], { type: 'audio/aac' });
-            const objectUrl = URL.createObjectURL(blob);
-            playWithCustomPlayer(objectUrl);
+            const clone = response.clone();
+            clone.arrayBuffer()
+                .then(buffer => {
+                    const blob = new Blob([buffer], { type: 'audio/aac' });
+                    const objectUrl = URL.createObjectURL(blob);
+                    playWithCustomPlayer(objectUrl);
+                })
+                .catch(err => {
+                    logWarn('Falha ao processar resposta de síntese:', err);
+                });
         }
 
         return response;
