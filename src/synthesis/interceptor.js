@@ -64,8 +64,3 @@ export function installFetchInterceptor() {
 
     logInfo('Interceptor de fetch instalado');
 }
-
-/** Retorna true se o token de autorização já foi capturado */
-export function hasAuthToken() {
-    return !!sessionHeaders['Authorization'];
-}

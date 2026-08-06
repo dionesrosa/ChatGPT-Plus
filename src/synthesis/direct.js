@@ -29,17 +29,49 @@ export function getLastMessageId() {
 }
 
 /**
+ * Tenta obter o Bearer token de autorização.
+ * Ordem de prioridade:
+ *  1. sessionHeaders — capturado pelo interceptor a partir do /synthesize nativo
+ *  2. localStorage 'oai/apps/accountSwitchSessions' — disponível em algumas contas
+ *     onde o sessionToken é um JWT RS256 (não um JWE criptografado)
+ * @returns {string|null}
+ */
+function resolveAuthToken() {
+    // 1. Capturado pelo interceptor (mais confiável)
+    if (sessionHeaders['Authorization']) {
+        return sessionHeaders['Authorization'];
+    }
+
+    // 2. localStorage — só funciona quando sessionToken é JWT RS256
+    try {
+        const raw      = localStorage.getItem('oai/apps/accountSwitchSessions');
+        const sessions = JSON.parse(raw);
+        const token    = Array.isArray(sessions)
+            ? sessions.find(s => s?.sessionToken?.startsWith('eyJhbGciOiJSUzI1NiI'))?.sessionToken
+            : null;
+        if (token) {
+            logInfo('Token obtido do localStorage');
+            return `Bearer ${token}`;
+        }
+    } catch (_) {}
+
+    return null;
+}
+
+/**
  * Solicita a síntese de voz.
  *
- * Se o token de autorização já foi capturado (a partir da segunda resposta),
- * faz a requisição diretamente ao backend.
+ * Se o token já estiver disponível (via interceptor ou localStorage), faz a
+ * requisição diretamente ao backend.
  *
- * Se não tiver token ainda (primeira resposta da sessão), usa o fluxo de UI
- * para disparar o /synthesize nativo — o interceptor captura a resposta e
- * redireciona para o player, e também salva o token para as próximas vezes.
+ * Caso contrário (primeira resposta, conta com JWE), usa o fluxo de UI para
+ * disparar o /synthesize nativo — o interceptor captura o token e o áudio é
+ * redirecionado para o player customizado.
  */
 export async function requestSynthesisDirect() {
-    if (!hasAuthToken()) {
+    const authToken = resolveAuthToken();
+
+    if (!authToken) {
         logInfo('Token ainda não disponível – usando UI para capturar na primeira vez');
         openLastMessageMenu();
         return;
@@ -66,15 +98,15 @@ export async function requestSynthesisDirect() {
         const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization':               sessionHeaders['Authorization'],
-                'OAI-Language':                sessionHeaders['OAI-Language']                ?? 'pt-BR',
-                'OAI-Session-Id':              sessionHeaders['OAI-Session-Id']              ?? '',
-                'OAI-Device-Id':               sessionHeaders['OAI-Device-Id']               ?? '',
-                'OAI-Client-Build-Number':     sessionHeaders['OAI-Client-Build-Number']     ?? '',
-                'OAI-Client-Version':          sessionHeaders['OAI-Client-Version']          ?? '',
-                'X-OAI-IS-Client-Observation': sessionHeaders['X-OAI-IS-Client-Observation'] ?? '',
-                'X-OpenAI-Target-Path':        '/backend-api/synthesize',
-                'X-OpenAI-Target-Route':       '/backend-api/synthesize',
+                'authorization':               authToken,
+                'oai-language':                sessionHeaders['OAI-Language']                ?? 'pt-BR',
+                'oai-session-id':              sessionHeaders['OAI-Session-Id']              ?? '',
+                'oai-device-id':               sessionHeaders['OAI-Device-Id']               ?? '',
+                'oai-client-build-number':     sessionHeaders['OAI-Client-Build-Number']     ?? '',
+                'oai-client-version':          sessionHeaders['OAI-Client-Version']          ?? '',
+                'x-oai-is-client-observation': sessionHeaders['X-OAI-IS-Client-Observation'] ?? '',
+                'x-openai-target-path':        '/backend-api/synthesize',
+                'x-openai-target-route':       '/backend-api/synthesize',
             },
         });
 
