@@ -1,10 +1,11 @@
 import { PLAY_MODE, SCRIPT_NAME, SCRIPT_VERSION } from './config/settings.js';
 import { logInfo } from './core/logger.js';
-import { installFetchInterceptor } from './synthesis/interceptor.js';
+import { installFetchInterceptor, warmUpSessionHeaders } from './synthesis/interceptor.js';
 import { startMonitoring } from './monitor/generation.js';
 
 if (PLAY_MODE === 'player') {
     installFetchInterceptor();
+    warmUpSessionHeaders();
 }
 
 if (document.readyState === 'complete' || document.readyState === 'interactive') {

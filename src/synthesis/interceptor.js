@@ -19,6 +19,17 @@ const SESSION_HEADER_KEYS = [
 ];
 
 /**
+ * Faz uma chamada leve ao backend para forçar a captura dos headers de sessão
+ * antes que qualquer síntese seja solicitada. Chamado uma vez na inicialização.
+ */
+export async function warmUpSessionHeaders() {
+    try {
+        await fetch('https://chatgpt.com/backend-api/me');
+        logInfo('Headers de sessão capturados no warm-up');
+    } catch (_) {}
+}
+
+/**
  * Instala um interceptor no fetch nativo com dois objetivos:
  *  1. Coletar headers de sessão OAI de qualquer requisição ao backend.
  *  2. Capturar a resposta do endpoint /synthesize e redirecionar o áudio

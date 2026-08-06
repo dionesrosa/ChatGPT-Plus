@@ -28,29 +28,13 @@ export function getLastMessageId() {
 }
 
 /**
- * Tenta obter o token Bearer de autorização.
- * Ordem de prioridade:
- *  1. localStorage 'oai/apps/accountSwitchSessions' — fonte primária, sempre disponível
- *  2. sessionHeaders — capturado pelo interceptor de fetch em chamadas anteriores
+ * Obtém o token Bearer de autorização a partir dos headers capturados
+ * pelo interceptor de fetch. O warm-up garante que esteja disponível
+ * antes da primeira síntese.
  * @returns {string|null}
  */
 function resolveAuthToken() {
-    // 1. localStorage — array de sessões, pega a primeira com sessionToken válido
-    try {
-        const raw      = localStorage.getItem('oai/apps/accountSwitchSessions');
-        const sessions = JSON.parse(raw);
-        const token    = Array.isArray(sessions)
-            ? sessions.find(s => s?.sessionToken?.startsWith('eyJ'))?.sessionToken
-            : null;
-        if (token) return `Bearer ${token}`;
-    } catch (_) {}
-
-    // 2. Capturado pelo interceptor de fetch
-    if (sessionHeaders['Authorization']) {
-        return sessionHeaders['Authorization'];
-    }
-
-    return null;
+    return sessionHeaders['Authorization'] ?? null;
 }
 
 /**

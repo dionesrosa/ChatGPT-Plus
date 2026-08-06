@@ -207,6 +207,77 @@
         logInfo("Interceptor de fetch instalado");
       }
     
+      // src/synthesis/direct.js
+      function getConversationId() {
+        const match = location.pathname.match(/\/c\/([a-f0-9-]{36})/i);
+        return match ? match[1] : null;
+      }
+      function getLastMessageId() {
+        const messages = document.querySelectorAll(
+          '[data-message-author-role="assistant"][data-message-id]'
+        );
+        const last = messages[messages.length - 1];
+        return last?.dataset?.messageId ?? null;
+      }
+      function resolveAuthToken() {
+        try {
+          const raw = localStorage.getItem("oai/apps/accountSwitchSessions");
+          const sessions = JSON.parse(raw);
+          const token = Array.isArray(sessions) ? sessions.find((s) => s?.sessionToken?.startsWith("eyJ"))?.sessionToken : null;
+          if (token) return `Bearer ${token}`;
+        } catch (_) {
+        }
+        if (sessionHeaders["Authorization"]) {
+          return sessionHeaders["Authorization"];
+        }
+        return null;
+      }
+      async function requestSynthesisDirect() {
+        const conversationId = getConversationId();
+        const messageId = getLastMessageId();
+        if (!conversationId || !messageId) {
+          logWarn("N\xE3o foi poss\xEDvel obter conversation_id ou message_id", { conversationId, messageId });
+          releaseReadingLock();
+          return;
+        }
+        const authToken = resolveAuthToken();
+        if (!authToken) {
+          logWarn("Token de autoriza\xE7\xE3o n\xE3o dispon\xEDvel \u2014 abortando s\xEDntese direta");
+          releaseReadingLock();
+          return;
+        }
+        const url = `https://chatgpt.com/backend-api/synthesize?message_id=${encodeURIComponent(messageId)}&conversation_id=${encodeURIComponent(conversationId)}&voice=${encodeURIComponent(TTS_VOICE)}&format=aac`;
+        logInfo("Requisitando s\xEDntese direta:", url);
+        try {
+          const response = await fetch(url, {
+            method: "GET",
+            headers: {
+              "Authorization": authToken,
+              "OAI-Language": sessionHeaders["OAI-Language"] ?? "pt-BR",
+              "OAI-Session-Id": sessionHeaders["OAI-Session-Id"] ?? "",
+              "OAI-Device-Id": sessionHeaders["OAI-Device-Id"] ?? "",
+              "OAI-Client-Build-Number": sessionHeaders["OAI-Client-Build-Number"] ?? "",
+              "OAI-Client-Version": sessionHeaders["OAI-Client-Version"] ?? "",
+              "X-OAI-IS-Client-Observation": sessionHeaders["X-OAI-IS-Client-Observation"] ?? "",
+              "X-OpenAI-Target-Path": "/backend-api/synthesize",
+              "X-OpenAI-Target-Route": "/backend-api/synthesize"
+            }
+          });
+          if (!response.ok) {
+            logWarn(`Erro na s\xEDntese: HTTP ${response.status}`);
+            releaseReadingLock();
+            return;
+          }
+          const buffer = await response.arrayBuffer();
+          const blob = new Blob([buffer], { type: "audio/aac" });
+          const objectUrl = URL.createObjectURL(blob);
+          playWithCustomPlayer(objectUrl);
+        } catch (err) {
+          logWarn("Falha ao solicitar s\xEDntese:", err);
+          releaseReadingLock();
+        }
+      }
+    
       // src/ui/menu.js
       function openLastMessageMenu() {
         const assistantMessages = document.querySelectorAll('[data-message-author-role="assistant"]');
@@ -268,63 +339,6 @@
         button.click();
         setTimeout(() => document.querySelector("#prompt-textarea")?.focus(), 500);
         releaseReadingLock();
-      }
-    
-      // src/synthesis/direct.js
-      function getConversationId() {
-        const match = location.pathname.match(/\/c\/([a-f0-9-]{36})/i);
-        return match ? match[1] : null;
-      }
-      function getLastMessageId() {
-        const messages = document.querySelectorAll(
-          '[data-message-author-role="assistant"][data-message-id]'
-        );
-        const last = messages[messages.length - 1];
-        return last?.dataset?.messageId ?? null;
-      }
-      async function requestSynthesisDirect() {
-        const conversationId = getConversationId();
-        const messageId = getLastMessageId();
-        if (!conversationId || !messageId) {
-          logWarn("N\xE3o foi poss\xEDvel obter conversation_id ou message_id", { conversationId, messageId });
-          releaseReadingLock();
-          return;
-        }
-        if (!sessionHeaders["Authorization"]) {
-          logWarn("Token de autoriza\xE7\xE3o ainda n\xE3o capturado \u2013 usando fallback via UI");
-          openLastMessageMenu();
-          return;
-        }
-        const url = `https://chatgpt.com/backend-api/synthesize?message_id=${encodeURIComponent(messageId)}&conversation_id=${encodeURIComponent(conversationId)}&voice=${encodeURIComponent(TTS_VOICE)}&format=aac`;
-        logInfo("Requisitando s\xEDntese direta:", url);
-        try {
-          const response = await fetch(url, {
-            method: "GET",
-            headers: {
-              "Authorization": sessionHeaders["Authorization"],
-              "OAI-Language": sessionHeaders["OAI-Language"] ?? "pt-BR",
-              "OAI-Session-Id": sessionHeaders["OAI-Session-Id"] ?? "",
-              "OAI-Device-Id": sessionHeaders["OAI-Device-Id"] ?? "",
-              "OAI-Client-Build-Number": sessionHeaders["OAI-Client-Build-Number"] ?? "",
-              "OAI-Client-Version": sessionHeaders["OAI-Client-Version"] ?? "",
-              "X-OAI-IS-Client-Observation": sessionHeaders["X-OAI-IS-Client-Observation"] ?? "",
-              "X-OpenAI-Target-Path": "/backend-api/synthesize",
-              "X-OpenAI-Target-Route": "/backend-api/synthesize"
-            }
-          });
-          if (!response.ok) {
-            logWarn(`Erro na s\xEDntese: HTTP ${response.status}`);
-            releaseReadingLock();
-            return;
-          }
-          const buffer = await response.arrayBuffer();
-          const blob = new Blob([buffer], { type: "audio/aac" });
-          const objectUrl = URL.createObjectURL(blob);
-          playWithCustomPlayer(objectUrl);
-        } catch (err) {
-          logWarn("Falha ao solicitar s\xEDntese:", err);
-          releaseReadingLock();
-        }
       }
     
       // src/monitor/generation.js
