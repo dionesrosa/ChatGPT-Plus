@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ChatGPT Plus
 // @namespace    https://github.com/dionesrosa
-// @version      0.2.17
+// @version      0.2.19
 // @description  Reprodução automática de voz ao finalizar resposta no chat do ChatGPT.
 // @author       Diones Souza
 // @icon         data:image/png;base64,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
@@ -12,7 +12,7 @@
 // @match        *://chatgpt.com/*
 // @grant        GM_getValue
 // @grant        GM_setValue
-// @run-at       document-idle
+// @run-at       document-start
 // @noframes
 // ==/UserScript==
 
@@ -171,21 +171,48 @@
         });
       }
     
-      // src/synthesis/interceptor.js
+      // src/synthesis/session.js
       var sessionHeaders = {};
-      var SYNTHESIZE_HEADER_KEYS = [
-        "Authorization",
-        "OAI-Language",
-        "OAI-Session-Id",
-        "OAI-Device-Id",
-        "OAI-Client-Build-Number",
-        "OAI-Client-Version",
-        "X-OAI-IS-Client-Observation"
-      ];
+      var CANONICAL_KEYS = {
+        authorization: "Authorization",
+        "oai-language": "OAI-Language",
+        "oai-session-id": "OAI-Session-Id",
+        "oai-device-id": "OAI-Device-Id",
+        "oai-client-build-number": "OAI-Client-Build-Number",
+        "oai-client-version": "OAI-Client-Version",
+        "x-oai-is-client-observation": "X-OAI-IS-Client-Observation"
+      };
+      var CAPTURE_HEADER_KEYS = Object.values(CANONICAL_KEYS);
+      function mergeSessionHeaders(headers) {
+        if (!headers) return;
+        for (const [rawName, value] of Object.entries(headers)) {
+          if (!value) continue;
+          const canonical = CANONICAL_KEYS[rawName.toLowerCase()];
+          if (canonical) {
+            sessionHeaders[canonical] = value;
+          }
+        }
+      }
+      function getSessionHeader(name) {
+        return sessionHeaders[name] ?? null;
+      }
+      function getAuthorizationHeader() {
+        const auth = getSessionHeader("Authorization");
+        if (!auth) return null;
+        return auth.startsWith("Bearer ") ? auth : `Bearer ${auth}`;
+      }
+    
+      // src/synthesis/interceptor.js
+      var BRIDGE_EVENT = "cgpt-plus-session-headers";
+      var AUDIO_EVENT = "cgpt-plus-synthesize-audio";
+      var PAGE_FLAG = "__cgptPlusFetchPatched";
       function normalizeHeaders(headers) {
         if (!headers) return null;
         if (typeof headers.entries === "function") {
           return Object.fromEntries([...headers.entries()]);
+        }
+        if (Array.isArray(headers)) {
+          return Object.fromEntries(headers);
         }
         return { ...headers };
       }
@@ -199,35 +226,171 @@
         }
         return void 0;
       }
-      function installFetchInterceptor() {
+      function captureHeadersFromRequest(url, headers) {
+        if (!url.includes("backend-api")) return;
+        const normalized = normalizeHeaders(headers);
+        if (!normalized) return;
+        mergeSessionHeaders(normalized);
+      }
+      function handleSynthesisResponse(url, headers, response) {
+        const isDirectSynthesis = url.includes("backend-api/synthesize") && (getHeaderValue(headers, "x-openai-target-path") || getHeaderValue(headers, "x-openai-target-route"));
+        if (!url.includes("backend-api/synthesize") || isDirectSynthesis || !response.ok) {
+          return;
+        }
+        logInfo("Resposta de s\xEDntese capturada:", url);
+        const clone = response.clone();
+        clone.arrayBuffer().then((buffer) => {
+          const blob = new Blob([buffer], { type: "audio/aac" });
+          const objectUrl = URL.createObjectURL(blob);
+          playWithCustomPlayer(objectUrl);
+        }).catch((err) => {
+          logWarn("Falha ao processar resposta de s\xEDntese:", err);
+        });
+      }
+      function buildPageInterceptorSource() {
+        const keys = JSON.stringify(CAPTURE_HEADER_KEYS.map((k) => k.toLowerCase()));
+        const headerEvent = JSON.stringify(BRIDGE_EVENT);
+        const audioEvent = JSON.stringify(AUDIO_EVENT);
+        const pageFlag = JSON.stringify(PAGE_FLAG);
+        return `
+    (function () {
+        if (window[${pageFlag}]) return;
+        window[${pageFlag}] = true;
+    
+        const KEYS = ${keys};
+    
+        function normalizeHeaders(headers) {
+            if (!headers) return null;
+            if (typeof headers.entries === 'function') {
+                return Object.fromEntries(Array.from(headers.entries()));
+            }
+            if (Array.isArray(headers)) {
+                return Object.fromEntries(headers);
+            }
+            return Object.assign({}, headers);
+        }
+    
+        function getHeader(headers, key) {
+            if (!headers) return undefined;
+            const lower = key.toLowerCase();
+            for (const name of Object.keys(headers)) {
+                if (name.toLowerCase() === lower) return headers[name];
+            }
+            return undefined;
+        }
+    
+        function publishHeaders(headers) {
+            if (!headers) return;
+            const payload = {};
+            for (const key of KEYS) {
+                const value = getHeader(headers, key);
+                if (value) payload[key] = value;
+            }
+            if (Object.keys(payload).length === 0) return;
+            window.dispatchEvent(new CustomEvent(${headerEvent}, { detail: payload }));
+        }
+    
+        function publishAudio(buffer) {
+            const blob = new Blob([buffer], { type: 'audio/aac' });
+            const objectUrl = URL.createObjectURL(blob);
+            window.dispatchEvent(new CustomEvent(${audioEvent}, { detail: { objectUrl } }));
+        }
+    
+        const originalFetch = window.fetch;
+        window.fetch = async function (resource, options) {
+            const url = typeof resource === 'string' ? resource : (resource && resource.url) || '';
+            const normalizedHeaders = normalizeHeaders(options && options.headers);
+    
+            if (url.includes('backend-api')) {
+                publishHeaders(normalizedHeaders);
+            }
+    
+            const response = await originalFetch.apply(this, arguments);
+    
+            const isDirectSynthesis = url.includes('backend-api/synthesize') && (
+                getHeader(normalizedHeaders, 'x-openai-target-path') ||
+                getHeader(normalizedHeaders, 'x-openai-target-route')
+            );
+    
+            if (url.includes('backend-api/synthesize') && !isDirectSynthesis && response.ok) {
+                response.clone().arrayBuffer()
+                    .then(publishAudio)
+                    .catch(function () {});
+            }
+    
+            return response;
+        };
+    
+        const originalOpen = XMLHttpRequest.prototype.open;
+        const originalSend = XMLHttpRequest.prototype.send;
+        const originalSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
+    
+        XMLHttpRequest.prototype.open = function (method, url) {
+            this.__cgptUrl = typeof url === 'string' ? url : String(url);
+            this.__cgptHeaders = {};
+            return originalOpen.apply(this, arguments);
+        };
+    
+        XMLHttpRequest.prototype.setRequestHeader = function (name, value) {
+            this.__cgptHeaders = this.__cgptHeaders || {};
+            this.__cgptHeaders[name.toLowerCase()] = value;
+            return originalSetRequestHeader.apply(this, arguments);
+        };
+    
+        XMLHttpRequest.prototype.send = function () {
+            if (this.__cgptUrl && this.__cgptUrl.includes('backend-api')) {
+                publishHeaders(this.__cgptHeaders);
+            }
+            return originalSend.apply(this, arguments);
+        };
+    })();
+    `;
+      }
+      function injectPageInterceptor() {
+        if (window[PAGE_FLAG]) return;
+        const source = buildPageInterceptorSource();
+        const blob = new Blob([source], { type: "application/javascript" });
+        const blobUrl = URL.createObjectURL(blob);
+        const script = document.createElement("script");
+        script.src = blobUrl;
+        script.onload = () => {
+          URL.revokeObjectURL(blobUrl);
+          script.remove();
+        };
+        script.onerror = () => {
+          URL.revokeObjectURL(blobUrl);
+          script.remove();
+          logWarn("Falha ao injetar interceptor no contexto da p\xE1gina");
+        };
+        (document.documentElement || document.head || document.body).appendChild(script);
+      }
+      function installBridgeListeners() {
+        window.addEventListener(BRIDGE_EVENT, (event) => {
+          mergeSessionHeaders(event.detail);
+        });
+        window.addEventListener(AUDIO_EVENT, (event) => {
+          const objectUrl = event.detail?.objectUrl;
+          if (objectUrl) {
+            playWithCustomPlayer(objectUrl);
+          }
+        });
+      }
+      function patchLocalFetch() {
+        if (window.__cgptPlusLocalFetchPatched) return;
+        window.__cgptPlusLocalFetchPatched = true;
         const originalFetch = window.fetch;
         window.fetch = async function(resource, options) {
           const url = typeof resource === "string" ? resource : resource?.url ?? "";
-          const normalizedHeaders = normalizeHeaders(options?.headers);
-          if (url.includes("backend-api") && normalizedHeaders) {
-            const lowerMap = Object.fromEntries(
-              Object.entries(normalizedHeaders).map(([k, v]) => [k.toLowerCase(), v])
-            );
-            SYNTHESIZE_HEADER_KEYS.forEach((key) => {
-              const val = lowerMap[key.toLowerCase()];
-              if (val) sessionHeaders[key] = val;
-            });
-          }
+          captureHeadersFromRequest(url, options?.headers);
           const response = await originalFetch.apply(this, arguments);
-          const isDirectSynthesis = url.includes("backend-api/synthesize") && (getHeaderValue(normalizedHeaders, "x-openai-target-path") || getHeaderValue(normalizedHeaders, "x-openai-target-route"));
-          if (url.includes("backend-api/synthesize") && !isDirectSynthesis && response.ok) {
-            logInfo("Resposta de s\xEDntese capturada:", url);
-            const clone = response.clone();
-            clone.arrayBuffer().then((buffer) => {
-              const blob = new Blob([buffer], { type: "audio/aac" });
-              const objectUrl = URL.createObjectURL(blob);
-              playWithCustomPlayer(objectUrl);
-            }).catch((err) => {
-              logWarn("Falha ao processar resposta de s\xEDntese:", err);
-            });
-          }
+          handleSynthesisResponse(url, normalizeHeaders(options?.headers), response);
           return response;
         };
+      }
+      function installFetchInterceptor() {
+        installBridgeListeners();
+        injectPageInterceptor();
+        patchLocalFetch();
         logInfo("Interceptor de fetch instalado");
       }
     
@@ -307,8 +470,9 @@
         return last?.dataset?.messageId ?? null;
       }
       function resolveAuthToken() {
-        if (sessionHeaders["Authorization"]) {
-          return sessionHeaders["Authorization"];
+        const captured = getAuthorizationHeader();
+        if (captured) {
+          return captured;
         }
         try {
           const raw = localStorage.getItem("oai/apps/accountSwitchSessions");
@@ -316,16 +480,30 @@
           const token = Array.isArray(sessions) ? sessions.find((s) => s?.sessionToken?.startsWith("eyJhbGciOiJSUzI1NiI"))?.sessionToken : null;
           if (token) {
             logInfo("Token obtido do localStorage");
+            mergeSessionHeaders({ authorization: `Bearer ${token}` });
             return `Bearer ${token}`;
           }
         } catch (_) {
         }
         return null;
       }
+      function buildSynthesisHeaders(authToken) {
+        return {
+          authorization: authToken,
+          "oai-language": getSessionHeader("OAI-Language") ?? "pt-BR",
+          "oai-session-id": getSessionHeader("OAI-Session-Id") ?? "",
+          "oai-device-id": getSessionHeader("OAI-Device-Id") ?? "",
+          "oai-client-build-number": getSessionHeader("OAI-Client-Build-Number") ?? "",
+          "oai-client-version": getSessionHeader("OAI-Client-Version") ?? "",
+          "x-oai-is-client-observation": getSessionHeader("X-OAI-IS-Client-Observation") ?? "",
+          "x-openai-target-path": "/backend-api/synthesize",
+          "x-openai-target-route": "/backend-api/synthesize"
+        };
+      }
       async function requestSynthesisDirect() {
         const authToken = resolveAuthToken();
         if (!authToken) {
-          logInfo("Token ainda n\xE3o dispon\xEDvel \u2013 usando UI para capturar na primeira vez");
+          logInfo("Token ainda n\xE3o dispon\xEDvel \u2013 aguardando requisi\xE7\xE3o nativa ou usando UI");
           openLastMessageMenu();
           return;
         }
@@ -341,24 +519,26 @@
         try {
           const response = await fetch(url, {
             method: "GET",
-            headers: {
-              "authorization": authToken,
-              "oai-language": sessionHeaders["OAI-Language"] ?? "pt-BR",
-              "oai-session-id": sessionHeaders["OAI-Session-Id"] ?? "",
-              "oai-device-id": sessionHeaders["OAI-Device-Id"] ?? "",
-              "oai-client-build-number": sessionHeaders["OAI-Client-Build-Number"] ?? "",
-              "oai-client-version": sessionHeaders["OAI-Client-Version"] ?? "",
-              "x-oai-is-client-observation": sessionHeaders["X-OAI-IS-Client-Observation"] ?? "",
-              "x-openai-target-path": "/backend-api/synthesize",
-              "x-openai-target-route": "/backend-api/synthesize"
-            }
+            credentials: "include",
+            headers: buildSynthesisHeaders(authToken)
           });
           if (!response.ok) {
             logWarn(`Erro na s\xEDntese: HTTP ${response.status}`);
             releaseReadingLock();
             return;
           }
+          const contentType = response.headers.get("content-type") ?? "";
+          if (contentType.includes("application/json")) {
+            logWarn("Resposta inesperada (JSON) em vez de \xE1udio");
+            releaseReadingLock();
+            return;
+          }
           const buffer = await response.arrayBuffer();
+          if (!buffer.byteLength) {
+            logWarn("Resposta de \xE1udio vazia");
+            releaseReadingLock();
+            return;
+          }
           const blob = new Blob([buffer], { type: "audio/aac" });
           const objectUrl = URL.createObjectURL(blob);
           playWithCustomPlayer(objectUrl);
@@ -397,12 +577,15 @@
       if (PLAY_MODE === "player") {
         installFetchInterceptor();
       }
-      if (document.readyState === "complete" || document.readyState === "interactive") {
+      function boot() {
         startMonitoring();
-      } else {
-        window.addEventListener("DOMContentLoaded", startMonitoring);
+        logInfo(`Script carregado \u2013 modo: ${PLAY_MODE}`);
       }
-      logInfo(`Script carregado \u2013 modo: ${PLAY_MODE}`);
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", boot, { once: true });
+      } else {
+        boot();
+      }
     })();
     
 })();

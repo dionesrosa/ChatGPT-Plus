@@ -7,10 +7,13 @@ if (PLAY_MODE === 'player') {
     installFetchInterceptor();
 }
 
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
+function boot() {
     startMonitoring();
-} else {
-    window.addEventListener('DOMContentLoaded', startMonitoring);
+    logInfo(`Script carregado – modo: ${PLAY_MODE}`);
 }
 
-logInfo(`Script carregado – modo: ${PLAY_MODE}`);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+} else {
+    boot();
+}

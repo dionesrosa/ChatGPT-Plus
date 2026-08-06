@@ -5,7 +5,7 @@
   "bundle": true,
   "namespace": "https://github.com/dionesrosa",
   "copyright": "",
-  "version": "0.2.17",
+  "version": "0.2.19",
   "description": "Reprodução automática de voz ao finalizar resposta no chat do ChatGPT.",
   "author": "Diones Souza",
   "license": "MIT",
@@ -21,6 +21,7 @@
     "GM_getValue",
     "GM_setValue"
   ],
-  "run_at": "document-idle",
+  "inject_into": "page",
+  "run_at": "document-start",
   "noframes": true
 }

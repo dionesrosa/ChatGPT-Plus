@@ -1,7 +1,11 @@
 import { logInfo, logWarn } from '../core/logger.js';
 import { releaseReadingLock } from '../core/state.js';
 import { TTS_VOICE } from '../config/settings.js';
-import { sessionHeaders } from './interceptor.js';
+import {
+    getAuthorizationHeader,
+    getSessionHeader,
+    mergeSessionHeaders,
+} from './session.js';
 import { playWithCustomPlayer } from '../player/audio.js';
 import { openLastMessageMenu } from '../ui/menu.js';
 
@@ -17,7 +21,6 @@ export function getConversationId() {
 
 /**
  * Extrai o message_id da última mensagem do assistente no DOM.
- * O ChatGPT armazena o ID no atributo data-message-id.
  * @returns {string|null}
  */
 export function getLastMessageId() {
@@ -30,27 +33,27 @@ export function getLastMessageId() {
 
 /**
  * Tenta obter o Bearer token de autorização.
- * Ordem de prioridade:
- *  1. sessionHeaders — capturado pelo interceptor a partir do /synthesize nativo
- *  2. localStorage 'oai/apps/accountSwitchSessions' — disponível em algumas contas
- *     onde o sessionToken é um JWT RS256 (não um JWE criptografado)
+ * Ordem:
+ *  1. Headers capturados pelo interceptor (fetch/XHR nativos)
+ *  2. localStorage accountSwitchSessions (JWT RS256 em algumas contas)
  * @returns {string|null}
  */
 function resolveAuthToken() {
-    // 1. Capturado pelo interceptor (mais confiável)
-    if (sessionHeaders['Authorization']) {
-        return sessionHeaders['Authorization'];
+    const captured = getAuthorizationHeader();
+    if (captured) {
+        return captured;
     }
 
-    // 2. localStorage — só funciona quando sessionToken é JWT RS256
     try {
-        const raw      = localStorage.getItem('oai/apps/accountSwitchSessions');
+        const raw = localStorage.getItem('oai/apps/accountSwitchSessions');
         const sessions = JSON.parse(raw);
-        const token    = Array.isArray(sessions)
+        const token = Array.isArray(sessions)
             ? sessions.find(s => s?.sessionToken?.startsWith('eyJhbGciOiJSUzI1NiI'))?.sessionToken
             : null;
+
         if (token) {
             logInfo('Token obtido do localStorage');
+            mergeSessionHeaders({ authorization: `Bearer ${token}` });
             return `Bearer ${token}`;
         }
     } catch (_) {}
@@ -58,27 +61,35 @@ function resolveAuthToken() {
     return null;
 }
 
+function buildSynthesisHeaders(authToken) {
+    return {
+        authorization: authToken,
+        'oai-language': getSessionHeader('OAI-Language') ?? 'pt-BR',
+        'oai-session-id': getSessionHeader('OAI-Session-Id') ?? '',
+        'oai-device-id': getSessionHeader('OAI-Device-Id') ?? '',
+        'oai-client-build-number': getSessionHeader('OAI-Client-Build-Number') ?? '',
+        'oai-client-version': getSessionHeader('OAI-Client-Version') ?? '',
+        'x-oai-is-client-observation': getSessionHeader('X-OAI-IS-Client-Observation') ?? '',
+        'x-openai-target-path': '/backend-api/synthesize',
+        'x-openai-target-route': '/backend-api/synthesize',
+    };
+}
+
 /**
- * Solicita a síntese de voz.
- *
- * Se o token já estiver disponível (via interceptor ou localStorage), faz a
- * requisição diretamente ao backend.
- *
- * Caso contrário (primeira resposta, conta com JWE), usa o fluxo de UI para
- * disparar o /synthesize nativo — o interceptor captura o token e o áudio é
- * redirecionado para o player customizado.
+ * Solicita a síntese de voz via /backend-api/synthesize e reproduz no player.
+ * Se o token ainda não existir, usa a UI nativa para capturá-lo na primeira vez.
  */
 export async function requestSynthesisDirect() {
     const authToken = resolveAuthToken();
 
     if (!authToken) {
-        logInfo('Token ainda não disponível – usando UI para capturar na primeira vez');
+        logInfo('Token ainda não disponível – aguardando requisição nativa ou usando UI');
         openLastMessageMenu();
         return;
     }
 
     const conversationId = getConversationId();
-    const messageId      = getLastMessageId();
+    const messageId = getLastMessageId();
 
     if (!conversationId || !messageId) {
         logWarn('Não foi possível obter conversation_id ou message_id', { conversationId, messageId });
@@ -97,17 +108,8 @@ export async function requestSynthesisDirect() {
     try {
         const response = await fetch(url, {
             method: 'GET',
-            headers: {
-                'authorization':               authToken,
-                'oai-language':                sessionHeaders['OAI-Language']                ?? 'pt-BR',
-                'oai-session-id':              sessionHeaders['OAI-Session-Id']              ?? '',
-                'oai-device-id':               sessionHeaders['OAI-Device-Id']               ?? '',
-                'oai-client-build-number':     sessionHeaders['OAI-Client-Build-Number']     ?? '',
-                'oai-client-version':          sessionHeaders['OAI-Client-Version']          ?? '',
-                'x-oai-is-client-observation': sessionHeaders['X-OAI-IS-Client-Observation'] ?? '',
-                'x-openai-target-path':        '/backend-api/synthesize',
-                'x-openai-target-route':       '/backend-api/synthesize',
-            },
+            credentials: 'include',
+            headers: buildSynthesisHeaders(authToken),
         });
 
         if (!response.ok) {
@@ -116,11 +118,23 @@ export async function requestSynthesisDirect() {
             return;
         }
 
-        const buffer    = await response.arrayBuffer();
-        const blob      = new Blob([buffer], { type: 'audio/aac' });
+        const contentType = response.headers.get('content-type') ?? '';
+        if (contentType.includes('application/json')) {
+            logWarn('Resposta inesperada (JSON) em vez de áudio');
+            releaseReadingLock();
+            return;
+        }
+
+        const buffer = await response.arrayBuffer();
+        if (!buffer.byteLength) {
+            logWarn('Resposta de áudio vazia');
+            releaseReadingLock();
+            return;
+        }
+
+        const blob = new Blob([buffer], { type: 'audio/aac' });
         const objectUrl = URL.createObjectURL(blob);
         playWithCustomPlayer(objectUrl);
-
     } catch (err) {
         logWarn('Falha ao solicitar síntese:', err);
         releaseReadingLock();
