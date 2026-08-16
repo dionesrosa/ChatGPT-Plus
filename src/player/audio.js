@@ -1,6 +1,6 @@
 import { logWarn } from '../core/logger.js';
 import { releaseReadingLock } from '../core/state.js';
-import { player, createPlayerControls, updatePlayPauseIcon, showPlayerControls } from './controls.js';
+import { player, createPlayerControls, updatePlayPauseIcon, showPlayerControls, hideLoadingIndicator } from './controls.js';
 
 /**
  * Reproduz uma URL de áudio no player customizado.
@@ -30,11 +30,13 @@ export function playWithCustomPlayer(audioUrl) {
 
     player.audio.play()
         .then(() => {
+            hideLoadingIndicator();
             updatePlayPauseIcon(true);
             showPlayerControls();
             releaseReadingLock();
         })
         .catch(err => {
+            hideLoadingIndicator();
             logWarn('Erro ao reproduzir:', err);
             releaseReadingLock();
         });

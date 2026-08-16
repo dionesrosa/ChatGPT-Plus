@@ -8,6 +8,7 @@ import {
 } from './session.js';
 import { playWithCustomPlayer } from '../player/audio.js';
 import { openLastMessageMenu } from '../ui/menu.js';
+import { showLoadingIndicator, hideLoadingIndicator } from '../player/controls.js';
 
 /**
  * Extrai o conversation_id da URL atual.
@@ -105,6 +106,8 @@ export async function requestSynthesisDirect() {
 
     logInfo('Requisitando síntese direta:', url);
 
+    showLoadingIndicator();
+
     try {
         const response = await fetch(url, {
             method: 'GET',
@@ -114,6 +117,7 @@ export async function requestSynthesisDirect() {
 
         if (!response.ok) {
             logWarn(`Erro na síntese: HTTP ${response.status}`);
+            hideLoadingIndicator();
             releaseReadingLock();
             return;
         }
@@ -121,6 +125,7 @@ export async function requestSynthesisDirect() {
         const contentType = response.headers.get('content-type') ?? '';
         if (contentType.includes('application/json')) {
             logWarn('Resposta inesperada (JSON) em vez de áudio');
+            hideLoadingIndicator();
             releaseReadingLock();
             return;
         }
@@ -128,6 +133,7 @@ export async function requestSynthesisDirect() {
         const buffer = await response.arrayBuffer();
         if (!buffer.byteLength) {
             logWarn('Resposta de áudio vazia');
+            hideLoadingIndicator();
             releaseReadingLock();
             return;
         }
@@ -136,6 +142,7 @@ export async function requestSynthesisDirect() {
         const objectUrl = URL.createObjectURL(blob);
         playWithCustomPlayer(objectUrl);
     } catch (err) {
+        hideLoadingIndicator();
         logWarn('Falha ao solicitar síntese:', err);
         releaseReadingLock();
     }

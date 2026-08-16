@@ -5,6 +5,7 @@ export const player = {
     audio:        null,   // elemento Audio atual
     controlsEl:   null,   // div de controles injetada no DOM
     playPauseBtn: null,   // botão play/pause
+    loadingEl:    null,   // indicador de carregamento
 };
 
 /** Cria e injeta a barra de controles no DOM. Chamado apenas uma vez. */
@@ -98,4 +99,67 @@ export function showPlayerControls() {
             player.controlsEl.style.opacity = '0';
         }
     }, 3000);
+}
+
+/** Exibe o indicador de loading enquanto o áudio está sendo processado */
+export function showLoadingIndicator() {
+    if (player.loadingEl) return; // já existe
+
+    const el = document.createElement('div');
+    el.id = 'cgpt-plus-loading';
+
+    // Keyframe da animação de pulso
+    if (!document.getElementById('cgpt-plus-loading-style')) {
+        const style = document.createElement('style');
+        style.id = 'cgpt-plus-loading-style';
+        style.textContent = `
+            @keyframes cgpt-spin {
+                0%   { transform: translateX(-50%) rotate(0deg); }
+                100% { transform: translateX(-50%) rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    Object.assign(el.style, {
+        position:     'fixed',
+        top:          '14px',
+        left:         '50%',
+        transform:    'translateX(-50%)',
+        zIndex:       '99999',
+        display:      'flex',
+        alignItems:   'center',
+        gap:          '8px',
+        background:   'rgba(0,0,0,0.70)',
+        backdropFilter: 'blur(8px)',
+        borderRadius: '999px',
+        padding:      '6px 16px',
+        color:        '#fff',
+        fontSize:     '13px',
+        userSelect:   'none',
+        pointerEvents: 'none',
+    });
+
+    // Spinner SVG
+    const spinner = document.createElement('span');
+    spinner.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="animation:cgpt-spin 0.8s linear infinite;display:block">
+        <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+        <path d="M8 2a6 6 0 0 1 6 6" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    </svg>`;
+
+    const label = document.createElement('span');
+    label.textContent = 'Gerando áudio…';
+
+    el.appendChild(spinner);
+    el.appendChild(label);
+    document.body.appendChild(el);
+    player.loadingEl = el;
+}
+
+/** Remove o indicador de loading */
+export function hideLoadingIndicator() {
+    if (player.loadingEl) {
+        player.loadingEl.remove();
+        player.loadingEl = null;
+    }
 }
