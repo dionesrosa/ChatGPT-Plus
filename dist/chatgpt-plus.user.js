@@ -437,12 +437,20 @@
       }
     
       // src/ui/menu.js
+      function findVoiceButton(container) {
+        return container?.querySelector('[data-testid="voice-play-turn-action-button"]');
+      }
       function openLastMessageMenu() {
         const assistantMessages = document.querySelectorAll('[data-message-author-role="assistant"]');
         const lastMessage = assistantMessages[assistantMessages.length - 1];
-        let moreActionsBtn = lastMessage?.querySelector('button[aria-label="Mais a\xE7\xF5es"]');
+        const directBtn = findVoiceButton(lastMessage);
+        if (directBtn) {
+          clickPlayButton();
+          return;
+        }
+        let moreActionsBtn = lastMessage?.querySelector('button[aria-label="Mais a\xE7\xF5es"], button[aria-label="More actions"]');
         if (!moreActionsBtn) {
-          const allButtons = document.querySelectorAll('button[aria-label="Mais a\xE7\xF5es"]');
+          const allButtons = document.querySelectorAll('button[aria-label="Mais a\xE7\xF5es"], button[aria-label="More actions"]');
           moreActionsBtn = allButtons[allButtons.length - 1];
         }
         if (!moreActionsBtn) {
@@ -532,6 +540,10 @@
       function buildSynthesisHeaders(authToken) {
         const headers = {
           authorization: authToken,
+          "accept": "*/*",
+          "accept-language": "pt-BR,pt-PT;q=0.9,pt;q=0.8,en-US;q=0.7,en;q=0.6",
+          "origin": "https://chatgpt.com",
+          "referer": "https://chatgpt.com/",
           "oai-language": getSessionHeader("OAI-Language") ?? "pt-BR"
         };
         const accountId = getSessionHeader("Chatgpt-Account-Id");

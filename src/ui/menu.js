@@ -2,16 +2,34 @@ import { logWarn } from '../core/logger.js';
 import { releaseReadingLock } from '../core/state.js';
 
 /**
+ * Retorna o botão de voz diretamente visível dentro de um container, se existir.
+ * @param {Element|null} container
+ * @returns {Element|null}
+ */
+function findVoiceButton(container) {
+    return container?.querySelector('[data-testid="voice-play-turn-action-button"]');
+}
+
+/**
  * Abre o menu de "Mais ações" da última mensagem do assistente
  * e aguarda o botão de leitura em voz alta aparecer.
+ * Tenta o botão de voz diretamente antes de recorrer ao menu.
  */
 export function openLastMessageMenu() {
     const assistantMessages = document.querySelectorAll('[data-message-author-role="assistant"]');
     const lastMessage       = assistantMessages[assistantMessages.length - 1];
 
-    let moreActionsBtn = lastMessage?.querySelector('button[aria-label="Mais ações"]');
+    // NOVO: Tenta o botão direto antes do menu
+    const directBtn = findVoiceButton(lastMessage);
+    if (directBtn) {
+        clickPlayButton();
+        return;
+    }
+
+    // Fallback: abre o menu "Mais ações"
+    let moreActionsBtn = lastMessage?.querySelector('button[aria-label="Mais ações"], button[aria-label="More actions"]');
     if (!moreActionsBtn) {
-        const allButtons = document.querySelectorAll('button[aria-label="Mais ações"]');
+        const allButtons = document.querySelectorAll('button[aria-label="Mais ações"], button[aria-label="More actions"]');
         moreActionsBtn   = allButtons[allButtons.length - 1];
     }
 

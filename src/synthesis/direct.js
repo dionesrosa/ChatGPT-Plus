@@ -64,8 +64,12 @@ function resolveAuthToken() {
 
 function buildSynthesisHeaders(authToken) {
     const headers = {
-        authorization: authToken,
-        'oai-language': getSessionHeader('OAI-Language') ?? 'pt-BR',
+        authorization:     authToken,
+        'accept':          '*/*',
+        'accept-language': 'pt-BR,pt-PT;q=0.9,pt;q=0.8,en-US;q=0.7,en;q=0.6',
+        'origin':          'https://chatgpt.com',
+        'referer':         'https://chatgpt.com/',
+        'oai-language':    getSessionHeader('OAI-Language') ?? 'pt-BR',
     };
 
     const accountId = getSessionHeader('Chatgpt-Account-Id');
