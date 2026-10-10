@@ -1,32 +1,33 @@
-import { logWarn } from '../core/logger.js';
+import { logInfo, logWarn } from '../core/logger.js';
 import { releaseReadingLock } from '../core/state.js';
 
-/**
- * Retorna o botão de voz diretamente visível dentro de um container, se existir.
- * @param {Element|null} container
- * @returns {Element|null}
- */
 function findVoiceButton(container) {
-    return container?.querySelector('[data-testid="voice-play-turn-action-button"]');
+    return (
+        container?.querySelector('button[aria-label="Ler em voz alta"]') ||
+        container?.querySelector('button[aria-label="Read aloud"]') ||
+        container?.querySelector('[data-testid="voice-play-turn-action-button"]')
+    );
 }
 
-/**
- * Abre o menu de "Mais ações" da última mensagem do assistente
- * e aguarda o botão de leitura em voz alta aparecer.
- * Tenta o botão de voz diretamente antes de recorrer ao menu.
- */
+function findVoiceButtonGlobal() {
+    return (
+        document.querySelector('button[aria-label="Ler em voz alta"]') ||
+        document.querySelector('button[aria-label="Read aloud"]') ||
+        document.querySelector('[data-testid="voice-play-turn-action-button"]')
+    );
+}
+
 export function openLastMessageMenu() {
     const assistantMessages = document.querySelectorAll('[data-message-author-role="assistant"]');
     const lastMessage       = assistantMessages[assistantMessages.length - 1];
 
-    // NOVO: Tenta o botão direto antes do menu
     const directBtn = findVoiceButton(lastMessage);
     if (directBtn) {
+        logInfo('Botão de voz encontrado diretamente na mensagem');
         clickPlayButton();
         return;
     }
 
-    // Fallback: abre o menu "Mais ações"
     let moreActionsBtn = lastMessage?.querySelector('button[aria-label="Mais ações"], button[aria-label="More actions"]');
     if (!moreActionsBtn) {
         const allButtons = document.querySelectorAll('button[aria-label="Mais ações"], button[aria-label="More actions"]');
@@ -42,7 +43,7 @@ export function openLastMessageMenu() {
     moreActionsBtn.click();
 
     const attemptToFindPlayButton = (retries = 0) => {
-        const playBtn = document.querySelector('[data-testid="voice-play-turn-action-button"]');
+        const playBtn = findVoiceButtonGlobal();
         if (playBtn) {
             clickPlayButton();
         } else if (retries < 5) {
@@ -56,45 +57,43 @@ export function openLastMessageMenu() {
     setTimeout(() => attemptToFindPlayButton(), 300);
 }
 
-/**
- * Gerencia o clique no botão de leitura, tratando o estado "Parar"
- * (quando já existe uma leitura em andamento).
- */
 export function clickPlayButton() {
-    const playBtn = document.querySelector('[data-testid="voice-play-turn-action-button"]');
+    const playBtn = findVoiceButtonGlobal();
     if (!playBtn) {
         logWarn('Botão de leitura sumiu');
         releaseReadingLock();
         return;
     }
 
-    if (playBtn.textContent?.trim() === 'Parar') {
+    const isPlaying = playBtn.getAttribute('aria-pressed') === 'true'
+                   || playBtn.textContent?.trim() === 'Parar'
+                   || playBtn.textContent?.trim() === 'Stop';
+
+    if (isPlaying) {
         playBtn.click();
 
-        setTimeout(() => {
-            const btn = document.querySelector('[data-testid="voice-play-turn-action-button"]');
-            if (btn && btn.textContent?.trim() !== 'Parar') {
+        const waitForIdle = (retries = 0) => {
+            const btn = findVoiceButtonGlobal();
+            const stillPlaying = btn?.getAttribute('aria-pressed') === 'true'
+                              || btn?.textContent?.trim() === 'Parar'
+                              || btn?.textContent?.trim() === 'Stop';
+            if (btn && !stillPlaying) {
                 startReadingUI(btn);
+            } else if (retries < 4) {
+                setTimeout(() => waitForIdle(retries + 1), 500);
             } else {
-                setTimeout(() => {
-                    const btn2 = document.querySelector('[data-testid="voice-play-turn-action-button"]');
-                    if (btn2 && btn2.textContent?.trim() !== 'Parar') {
-                        startReadingUI(btn2);
-                    } else {
-                        logWarn('Não foi possível iniciar leitura após parar');
-                        releaseReadingLock();
-                    }
-                }, 500);
+                logWarn('Não foi possível iniciar leitura após parar');
+                releaseReadingLock();
             }
-        }, 500);
+        };
 
+        setTimeout(() => waitForIdle(), 500);
         return;
     }
 
     startReadingUI(playBtn);
 }
 
-/** Clica no botão de leitura e foca o campo de texto */
 export function startReadingUI(button) {
     button.click();
     setTimeout(() => document.querySelector('#prompt-textarea')?.focus(), 500);
