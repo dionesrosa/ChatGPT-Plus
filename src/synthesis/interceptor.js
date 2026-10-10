@@ -4,6 +4,7 @@ import {
     CAPTURE_HEADER_KEYS,
     mergeSessionHeaders,
 } from './session.js';
+import { isSynthesizing } from '../core/state.js';
 
 const BRIDGE_EVENT = 'cgpt-plus-session-headers';
 const AUDIO_EVENT = 'cgpt-plus-synthesize-audio';
@@ -46,12 +47,7 @@ function captureHeadersFromRequest(url, headers) {
 }
 
 function handleSynthesisResponse(url, headers, response) {
-    const isDirectSynthesis = url.includes('backend-api/synthesize') && (
-        getHeaderValue(headers, 'x-openai-target-path') ||
-        getHeaderValue(headers, 'x-openai-target-route')
-    );
-
-    if (!url.includes('backend-api/synthesize') || isDirectSynthesis || !response.ok) {
+    if (!url.includes('backend-api/synthesize') || isSynthesizing || !response.ok) {
         return;
     }
 
@@ -134,12 +130,7 @@ function buildPageInterceptorSource() {
 
         const response = await originalFetch.apply(this, arguments);
 
-        const isDirectSynthesis = url.includes('backend-api/synthesize') && (
-            getHeader(normalizedHeaders, 'x-openai-target-path') ||
-            getHeader(normalizedHeaders, 'x-openai-target-route')
-        );
-
-        if (url.includes('backend-api/synthesize') && !isDirectSynthesis && response.ok) {
+        if (url.includes('backend-api/synthesize') && !window.__cgptIsSynthesizing && response.ok) {
             response.clone().arrayBuffer()
                 .then(publishAudio)
                 .catch(function () {});

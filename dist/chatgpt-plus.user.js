@@ -56,6 +56,10 @@
       function setMonitorInterval(ref) {
         monitorInterval = ref;
       }
+      var isSynthesizing = false;
+      function setSynthesizing(value) {
+        isSynthesizing = value;
+      }
     
       // src/player/controls.js
       var player = {
@@ -231,11 +235,10 @@
       var CANONICAL_KEYS = {
         authorization: "Authorization",
         "oai-language": "OAI-Language",
-        "oai-session-id": "OAI-Session-Id",
-        "oai-device-id": "OAI-Device-Id",
-        "oai-client-build-number": "OAI-Client-Build-Number",
-        "oai-client-version": "OAI-Client-Version",
-        "x-oai-is-client-observation": "X-OAI-IS-Client-Observation"
+        "chatgpt-account-id": "Chatgpt-Account-Id",
+        "oai-did": "OAI-DID",
+        "originator": "Originator",
+        "x-openai-web-frontend": "X-OpenAI-Web-Frontend"
       };
       var CAPTURE_HEADER_KEYS = Object.values(CANONICAL_KEYS);
       function mergeSessionHeaders(headers) {
@@ -271,16 +274,6 @@
         }
         return { ...headers };
       }
-      function getHeaderValue(headers, key) {
-        if (!headers) return void 0;
-        const lowerKey = key.toLowerCase();
-        for (const [name, value] of Object.entries(headers)) {
-          if (name.toLowerCase() === lowerKey) {
-            return value;
-          }
-        }
-        return void 0;
-      }
       function captureHeadersFromRequest(url, headers) {
         if (!url.includes("backend-api")) return;
         const normalized = normalizeHeaders(headers);
@@ -288,8 +281,7 @@
         mergeSessionHeaders(normalized);
       }
       function handleSynthesisResponse(url, headers, response) {
-        const isDirectSynthesis = url.includes("backend-api/synthesize") && (getHeaderValue(headers, "x-openai-target-path") || getHeaderValue(headers, "x-openai-target-route"));
-        if (!url.includes("backend-api/synthesize") || isDirectSynthesis || !response.ok) {
+        if (!url.includes("backend-api/synthesize") || isSynthesizing || !response.ok) {
           return;
         }
         logInfo("Resposta de s\xEDntese capturada:", url);
@@ -362,12 +354,7 @@
     
             const response = await originalFetch.apply(this, arguments);
     
-            const isDirectSynthesis = url.includes('backend-api/synthesize') && (
-                getHeader(normalizedHeaders, 'x-openai-target-path') ||
-                getHeader(normalizedHeaders, 'x-openai-target-route')
-            );
-    
-            if (url.includes('backend-api/synthesize') && !isDirectSynthesis && response.ok) {
+            if (url.includes('backend-api/synthesize') && !window.__cgptIsSynthesizing && response.ok) {
                 response.clone().arrayBuffer()
                     .then(publishAudio)
                     .catch(function () {});
@@ -543,17 +530,19 @@
         return null;
       }
       function buildSynthesisHeaders(authToken) {
-        return {
+        const headers = {
           authorization: authToken,
-          "oai-language": getSessionHeader("OAI-Language") ?? "pt-BR",
-          "oai-session-id": getSessionHeader("OAI-Session-Id") ?? "",
-          "oai-device-id": getSessionHeader("OAI-Device-Id") ?? "",
-          "oai-client-build-number": getSessionHeader("OAI-Client-Build-Number") ?? "",
-          "oai-client-version": getSessionHeader("OAI-Client-Version") ?? "",
-          "x-oai-is-client-observation": getSessionHeader("X-OAI-IS-Client-Observation") ?? "",
-          "x-openai-target-path": "/backend-api/synthesize",
-          "x-openai-target-route": "/backend-api/synthesize"
+          "oai-language": getSessionHeader("OAI-Language") ?? "pt-BR"
         };
+        const accountId = getSessionHeader("Chatgpt-Account-Id");
+        if (accountId) headers["chatgpt-account-id"] = accountId;
+        const oaiDid = getSessionHeader("OAI-DID");
+        if (oaiDid) headers["oai-did"] = oaiDid;
+        const originator = getSessionHeader("Originator");
+        if (originator) headers["originator"] = originator;
+        const webFrontend = getSessionHeader("X-OpenAI-Web-Frontend");
+        if (webFrontend) headers["x-openai-web-frontend"] = webFrontend;
+        return headers;
       }
       async function requestSynthesisDirect() {
         const authToken = resolveAuthToken();
@@ -573,6 +562,8 @@
         logInfo("Requisitando s\xEDntese direta:", url);
         showLoadingIndicator();
         try {
+          setSynthesizing(true);
+          window.__cgptIsSynthesizing = true;
           const response = await fetch(url, {
             method: "GET",
             credentials: "include",
@@ -605,6 +596,9 @@
           hideLoadingIndicator();
           logWarn("Falha ao solicitar s\xEDntese:", err);
           releaseReadingLock();
+        } finally {
+          setSynthesizing(false);
+          window.__cgptIsSynthesizing = false;
         }
       }
     
@@ -618,8 +612,11 @@
           setTimeout(() => openLastMessageMenu(), 400);
         }
       }
+      function findStopButton() {
+        return document.querySelector('[data-testid="stop-button"]') || document.querySelector('[data-testid="composer-cancel-button"]') || document.querySelector('button[aria-label="Stop generating"]') || document.querySelector('button[aria-label="Parar de gerar"]') || document.querySelector('button[data-testid*="stop"]');
+      }
       function checkGenerationState() {
-        const stopButton = document.querySelector('[data-testid="stop-button"]');
+        const stopButton = findStopButton();
         const currentState = stopButton ? "gerando" : "idle";
         if (lastState === "gerando" && currentState === "idle") {
           logInfo("Resposta finalizada \u2013 iniciando reprodu\xE7\xE3o autom\xE1tica");

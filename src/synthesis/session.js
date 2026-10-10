@@ -4,11 +4,10 @@ export const sessionHeaders = {};
 const CANONICAL_KEYS = {
     authorization: 'Authorization',
     'oai-language': 'OAI-Language',
-    'oai-session-id': 'OAI-Session-Id',
-    'oai-device-id': 'OAI-Device-Id',
-    'oai-client-build-number': 'OAI-Client-Build-Number',
-    'oai-client-version': 'OAI-Client-Version',
-    'x-oai-is-client-observation': 'X-OAI-IS-Client-Observation',
+    'chatgpt-account-id': 'Chatgpt-Account-Id',
+    'oai-did': 'OAI-DID',
+    'originator': 'Originator',
+    'x-openai-web-frontend': 'X-OpenAI-Web-Frontend',
 };
 
 /** Chaves capturadas de requisições ao backend-api. */

@@ -1,5 +1,5 @@
 import { logInfo, logWarn } from '../core/logger.js';
-import { releaseReadingLock } from '../core/state.js';
+import { releaseReadingLock, setSynthesizing } from '../core/state.js';
 import { TTS_VOICE } from '../config/settings.js';
 import {
     getAuthorizationHeader,
@@ -63,17 +63,24 @@ function resolveAuthToken() {
 }
 
 function buildSynthesisHeaders(authToken) {
-    return {
+    const headers = {
         authorization: authToken,
         'oai-language': getSessionHeader('OAI-Language') ?? 'pt-BR',
-        'oai-session-id': getSessionHeader('OAI-Session-Id') ?? '',
-        'oai-device-id': getSessionHeader('OAI-Device-Id') ?? '',
-        'oai-client-build-number': getSessionHeader('OAI-Client-Build-Number') ?? '',
-        'oai-client-version': getSessionHeader('OAI-Client-Version') ?? '',
-        'x-oai-is-client-observation': getSessionHeader('X-OAI-IS-Client-Observation') ?? '',
-        'x-openai-target-path': '/backend-api/synthesize',
-        'x-openai-target-route': '/backend-api/synthesize',
     };
+
+    const accountId = getSessionHeader('Chatgpt-Account-Id');
+    if (accountId) headers['chatgpt-account-id'] = accountId;
+
+    const oaiDid = getSessionHeader('OAI-DID');
+    if (oaiDid) headers['oai-did'] = oaiDid;
+
+    const originator = getSessionHeader('Originator');
+    if (originator) headers['originator'] = originator;
+
+    const webFrontend = getSessionHeader('X-OpenAI-Web-Frontend');
+    if (webFrontend) headers['x-openai-web-frontend'] = webFrontend;
+
+    return headers;
 }
 
 /**
@@ -109,6 +116,9 @@ export async function requestSynthesisDirect() {
     showLoadingIndicator();
 
     try {
+        setSynthesizing(true);
+        window.__cgptIsSynthesizing = true;
+
         const response = await fetch(url, {
             method: 'GET',
             credentials: 'include',
@@ -145,5 +155,8 @@ export async function requestSynthesisDirect() {
         hideLoadingIndicator();
         logWarn('Falha ao solicitar síntese:', err);
         releaseReadingLock();
+    } finally {
+        setSynthesizing(false);
+        window.__cgptIsSynthesizing = false;
     }
 }

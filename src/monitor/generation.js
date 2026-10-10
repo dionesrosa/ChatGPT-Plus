@@ -17,9 +17,20 @@ function onResponseFinished() {
     }
 }
 
+/** Localiza o botão de parar geração com múltiplos seletores de fallback */
+function findStopButton() {
+    return (
+        document.querySelector('[data-testid="stop-button"]') ||
+        document.querySelector('[data-testid="composer-cancel-button"]') ||
+        document.querySelector('button[aria-label="Stop generating"]') ||
+        document.querySelector('button[aria-label="Parar de gerar"]') ||
+        document.querySelector('button[data-testid*="stop"]')
+    );
+}
+
 /** Verifica se a resposta terminou de ser gerada comparando estados consecutivos */
 export function checkGenerationState() {
-    const stopButton   = document.querySelector('[data-testid="stop-button"]');
+    const stopButton   = findStopButton();
     const currentState = stopButton ? 'gerando' : 'idle';
 
     if (lastState === 'gerando' && currentState === 'idle') {

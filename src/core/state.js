@@ -36,3 +36,11 @@ export function setLastState(value) {
 export function setMonitorInterval(ref) {
     monitorInterval = ref;
 }
+
+/** Indica se uma síntese direta está em andamento */
+export let isSynthesizing = false;
+
+/** Define o estado de síntese em andamento */
+export function setSynthesizing(value) {
+    isSynthesizing = value;
+}
