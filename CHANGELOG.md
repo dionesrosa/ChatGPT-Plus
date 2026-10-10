@@ -1,3 +1,9 @@
+## [0.2.23] - 2026-10-10
+
+### Fixes
+
+- atualiza seletores do botao de voz para aria-label (Plus/Pro)
+
 ## [0.2.22] - 2026-10-10
 
 ### Fixes
