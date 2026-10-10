@@ -1,3 +1,6 @@
 logs/
 AGENTS.mdlogs/
 logs/
+
+.kiro/
+.agents/
